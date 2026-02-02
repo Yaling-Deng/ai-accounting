@@ -3,6 +3,7 @@
 """
 import argparse
 from pathlib import Path
+import pandas as pd
 from .data_loader import DataLoader
 from .product_classifier import ProductClassifier
 from .llm_client import LLMClient
@@ -74,6 +75,29 @@ def classify_products(input_filename: str, output_filename: str = None, column_n
     print(f"\n[4/4] 保存结果...")
     try:
         df = data_loader.add_product_type_column(df, product_types)
+        
+        if "价格类型" not in df.columns:
+            raise ValueError("输入文件中缺少'价格类型'列，该列是结算规则处理的必要条件。")
+        
+        def normalize_price_type(val):
+            if pd.isna(val):
+                return val
+            s = str(val)
+            lower = s.lower()
+            if "vp" in lower:
+                return "按vp价结算"
+            if "总监" in s:
+                return "按总监价结算"
+            if "核心" in s:
+                return "按核心价结算"
+            if "优惠" in s:
+                return "按优惠价结算"
+            if "常规" in s:
+                return "按常规价结算"
+            return s
+        
+        mask = df["产品类型"].isin(["常规册", "生鲜专卡"])
+        df.loc[mask, "价格类型"] = df.loc[mask, "价格类型"].apply(normalize_price_type)
         
         # 生成输出文件名
         if output_filename is None:
