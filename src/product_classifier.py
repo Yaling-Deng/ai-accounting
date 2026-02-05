@@ -71,8 +71,12 @@ class ProductClassifier:
         Returns:
             产品类型（生鲜专卡 或 待确认）
         """
-        if self.llm_client is None:
-            # 如果没有 LLM 客户端，返回待确认
+        if self.llm_client is None or getattr(self.llm_client, "available", False) is False:
+            s = (name or "").lower()
+            heuristics = ["牛肉", "羊肉", "猪肉", "鸡", "鸭", "鱼", "虾", "蟹", "贝", "海鲜", "生鲜", "水果", "和牛"]
+            for kw in heuristics:
+                if kw in name:
+                    return "生鲜专卡"
             return "待确认"
         
         prompt = f"""请判断以下礼包名称是否属于“生鲜专卡”类别。

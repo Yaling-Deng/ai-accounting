@@ -15,9 +15,8 @@ class LLMClient:
         self.api_provider = DEFAULT_API_PROVIDER
         self.api_config = API_CONFIG[self.api_provider]
         self.api_key = DEFAULT_API_KEY
-        
-        if not self.api_key:
-            raise ValueError("未配置 API Key，请在 .env 文件中设置 OPENAI_API_KEY 或 DEEPSEEK_API_KEY")
+        self.available = bool(self.api_key)
+    
     
     def call_api(self, prompt: str, system_message: str = None, temperature: float = None, max_tokens: int = None) -> str:
         """
@@ -32,6 +31,8 @@ class LLMClient:
         Returns:
             LLM 的响应文本
         """
+        if not self.available:
+            raise Exception("LLM 不可用")
         url = f"{self.api_config['base_url']}/chat/completions"
         headers = {
             "Authorization": f"Bearer {self.api_key}",
