@@ -19,9 +19,14 @@ DATA_DIR = PROJECT_ROOT / "data"
 INPUT_DIR = DATA_DIR / "input"
 OUTPUT_DIR = DATA_DIR / "output"
 
-# API 配置
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
-DEEPSEEK_API_KEY = os.getenv("DEEPSEEK_API_KEY", "")
+# API 配置（优先从 Streamlit Secrets 读取，其次从环境变量读取）
+try:
+    import streamlit as st
+    OPENAI_API_KEY = st.secrets.get("OPENAI_API_KEY", os.getenv("OPENAI_API_KEY", ""))
+    DEEPSEEK_API_KEY = st.secrets.get("DEEPSEEK_API_KEY", os.getenv("DEEPSEEK_API_KEY", ""))
+except Exception:
+    OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
+    DEEPSEEK_API_KEY = os.getenv("DEEPSEEK_API_KEY", "")
 
 # 默认使用 DeepSeek（如果没有配置 OpenAI）
 DEFAULT_API_PROVIDER = "deepseek" if DEEPSEEK_API_KEY else "openai"
